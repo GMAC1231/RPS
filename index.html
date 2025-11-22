@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rock Paper Scissors – Battle Royale</title>
+  <style>
+    :root {
+      --bg1: #020617;
+      --bg2: #111827;
+      --bg3: #020617;
+      --accent-gold: #facc15;
+      --accent-orange: #f97316;
+      --accent-blue: #38bdf8;
+      --accent-red: #ef4444;
+      --accent-neon: #22d3ee;
+      --text-main: #e5e7eb;
+      --panel-bg: rgba(15, 23, 42, 0.9);
+      --panel-border: rgba(148, 163, 184, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: radial-gradient(circle at top, var(--bg2), var(--bg1), var(--bg3));
+      background-size: 200% 200%;
+      animation: bgMove 18s ease-in-out infinite;
+      cursor: crosshair;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 100% 100%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    #gameWrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 20px;
+      transition: transform 0.25s ease;
+    }
+
+    /* Camera shake */
+    .shake {
+      animation: shake 0.35s ease;
+    }
+    @keyframes shake {
+      0% { transform: translate(2px, 2px) rotate(0deg); }
+      20% { transform: translate(-4px, 0px) rotate(-1deg); }
+      40% { transform: translate(4px, 2px) rotate(1deg); }
+      60% { transform: translate(-2px, -2px) rotate(0deg); }
+      80% { transform: translate(2px, 0px) rotate(1deg); }
+      100% { transform: translate(0px, 2px) rotate(0deg); }
+    }
+
+    /* ============================
+       ORIGINAL CINEMATIC INTRO
+       ============================ */
+    #cinematicIntro {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #020617, #000 80%);
+      overflow: hidden;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cinematic-fade {
+      position: absolute;
+      inset: 0;
+      background: black;
+      animation: fadeInFilm 1.5s ease forwards;
+    }
+    @keyframes fadeInFilm {
+      0% { opacity: 1; }
+      100% { opacity: 0.15; }
+    }
+
+    /* Light rays */
+    .light-rays {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at bottom, rgba(250,204,21,0.2), transparent 60%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      animation: raysIn 2.5s ease forwards 2s;
+    }
+    @keyframes raysIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* Smoke */
+    .smoke {
+      position: absolute;
+      bottom: 0;
+      width: 200%;
+      height: 40%;
+      background: radial-gradient(circle at top, rgba(148,163,184,0.4), transparent 60%);
+      filter: blur(12px);
+      opacity: 0.4;
+      animation: smokeDrift 12s linear infinite;
+    }
+    @keyframes smokeDrift {
+      0% { transform: translateX(-20%); }
+      50% { transform: translateX(20%); }
+      100% { transform: translateX(-20%); }
+    }
+
+    /* Drone silhouette */
+    .drone {
+      position: absolute;
+      top: 18%;
+      width: 140px;
+      height: 50px;
+      background: #262626;
+      border-radius: 6px;
+      box-shadow: 0 0 40px rgba(34,211,238,0.4);
+      transform: translateX(-300px);
+      animation: droneFly 3s ease-out forwards;
+    }
+    .drone::before,
+    .drone::after {
+      content: "";
+      position: absolute;
+      width: 40px;
+      height: 4px;
+      background: #262626;
+      top: -4px;
+      border-radius: 999px;
+    }
+    .drone::before { left: -10px; }
+    .drone::after  { right: -10px; }
+
+    /* Drone spotlight */
+    .drone-spotlight {
+      position: absolute;
+      top: 18%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      transform: translateX(-50%);
+      border-left: 80px solid transparent;
+      border-right: 80px solid transparent;
+      border-top: 180px solid rgba(148,163,184,0.18);
+      filter: blur(1px);
+      opacity: 0;
+      animation: spotlightOn 3s ease-out forwards;
+    }
+
+    @keyframes droneFly {
+      0% { transform: translateX(-300px) rotate(-6deg); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateX(130vw) rotate(3deg); opacity: 0; }
+    }
+    @keyframes spotlightOn {
+      0% { opacity: 0; transform: translateX(-60%) translateY(-10px); }
+      50% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(40vw) translateY(20px); }
+    }
+
+    /* Metal shutters */
+    .shutter {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(120deg, #020617, #111827 40%, #020617);
+      z-index: 10;
+      animation: shutterOpen 2.5s ease forwards 2.2s;
+      box-shadow: 0 0 40px rgba(0,0,0,0.9);
+    }
+    .shutter-left  { left: 0; }
+    .shutter-right { right: 0; }
+
+    @keyframes shutterOpen {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-120%); }
+    }
+    .shutter-right {
+      animation: shutterOpenRight 2.5s ease forwards 2.2s;
+    }
+    @keyframes shutterOpenRight {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(120%); }
+    }
+
+    #sparkLayer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .spark {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #facc15;
+      border-radius: 50%;
+      opacity: 0;
+      animation: sparkFly 1s ease-out forwards;
+    }
+    @keyframes sparkFly {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-100px) scale(0.4); opacity: 0; }
+    }
+
+    #cinematicCountdown {
+      position: absolute;
+      bottom: 32%;
+      font-size: 120px;
+      color: #facc15;
+      opacity: 0;
+      text-shadow: 0 0 25px #f59e0b, 0 0 50px black;
+    }
+
+    #cinematicMsg {
+      position: absolute;
+      bottom: 23%;
+      color: #fff;
+      font-size: 24px;
+      opacity: 0;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .fighter {
+      position: absolute;
+      bottom: 5%;
+      width: 140px;
+      height: 260px;
+      opacity: 0;
+      transform: translateY(40px);
+      animation: fighterRise 1.8s ease-out forwards 4.6s;
+    }
+    @keyframes fighterRise {
+      0% { opacity: 0; transform: translateY(40px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .fighter-head {
+      width: 80px;
+      height: 80px;
+      background: #1f2937;
+      border-radius: 50%;
+      margin: auto;
+      box-shadow: 0 0 20px rgba(255,255,255,0.12);
+    }
+
+    .fighter-body {
+      width: 100px;
+      height: 120px;
+      background: linear-gradient(#111827, #020617);
+      border-radius: 16px;
+      margin: 10px auto;
+      box-shadow: 0 0 30px rgba(15,23,42,0.8);
+    }
+
+    .fighter-arm {
+      width: 22px;
+      height: 90px;
+      background: #020617;
+      border-radius: 12px;
+      position: absolute;
+      top: 100px;
+    }
+    .fighter-arm.left  { left: 10px;  transform: rotate(-12deg); }
+    .fighter-arm.right { right: 10px; transform: rotate(12deg); }
+
+    #enterArenaBtn {
+      position: absolute;
+      bottom: 8%;
+      padding: 14px 44px;
+      background: linear-gradient(90deg,#facc15,#f97316);
+      color: #111827;
+      border: none;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all .4s ease;
+      z-index: 20;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      box-shadow: 0 0 20px rgba(250,204,21,0.7);
+      cursor: pointer;
+    }
+    #enterArenaBtn.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Flash when entering game */
+    #flash {
+      position: absolute;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9;
+    }
+
+    .flash-active {
+      animation: flashAnim 0.35s ease-out;
+    }
+
+    @keyframes flashAnim {
+      0% { opacity: 0.7; }
+      100% { opacity: 0; }
+    }
+
+    /* Game title & layout */
+    .game-title {
+      margin-top: 10px;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-shadow:
+        0 0 10px rgba(148,163,184,0.6),
+        0 0 26px rgba(0,0,0,0.9);
+    }
+
+    .top-bar {
+      margin-top: 6px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    select, .mini-btn {
+      background: rgba(15,23,42,0.9);
+      color: var(--text-main);
+      border-radius: 999px;
+      border: 1px solid var(--panel-border);
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .mini-btn {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-row {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-width: 150px;
+      padding: 14px 22px;
+      font-size: 22px;
+      border-radius: 18px;
+      border: 1px solid var(--panel-border);
+      background: radial-gradient(circle at top, rgba(255,255,255,0.12), rgba(0,0,0,0.55));
+      color: var(--text-main);
+      cursor: pointer;
+      box-shadow:
+        0 6px 16px rgba(0,0,0,0.7),
+        0 0 10px rgba(255,255,255,0.1);
+      transform-style: preserve-3d;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-4px) rotateX(8deg);
+      box-shadow:
+        0 12px 24px rgba(0,0,0,0.9),
+        0 0 18px var(--accent-blue);
+    }
+
+    .btn:active {
+      transform: translateY(0) rotateX(0);
+      box-shadow:
+        0 4px 10px rgba(0,0,0,0.9),
+        0 0 10px var(--accent-blue);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    #countdown {
+      margin-top: 10px;
+      font-size: 20px;
+      min-height: 24px;
+      text-shadow:
+        0 0 10px var(--accent-blue),
+        0 0 18px rgba(0,0,0,0.8);
+    }
+
+    #resultBox {
+      margin-top: 10px;
+      font-size: 28px;
+      min-height: 70px;
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      text-align: center;
+    }
+
+    #resultBox.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .winner-player {
+      color: #22c55e;
+      text-shadow:
+        0 0 14px #22c55e,
+        0 0 30px rgba(0,0,0,0.9);
+    }
+
+    .winner-bot {
+      color: var(--accent-red);
+      text-shadow:
+        0 0 14px var(--accent-red),
+        0 0 30px rgba(0,0,0,0.9);
+    }
+
+    .winner-draw {
+      color: var(--accent-gold);
+      text-shadow:
+        0 0 14px var(--accent-gold),
+        0 0 30px rgba(0,0,0,0.9);
+    }
+
+    .scoreboard {
+      margin-top: 10px;
+      padding: 10px 16px;
+      width: 360px;
+      max-width: 90%;
+      background: var(--panel-bg);
+      border-radius: 16px;
+      border: 1px solid var(--panel-border);
+      box-shadow:
+        0 8px 22px rgba(0,0,0,0.8),
+        0 0 18px rgba(0,0,0,0.6);
+      font-size: 15px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+    }
+
+    .score-label {
+      opacity: 0.8;
+    }
+
+    .series-info {
+      margin-top: 6px;
+      font-size: 13px;
+      opacity: 0.8;
+      text-align: center;
+    }
+
+    /* Bot face + trash talk */
+    .bot-panel {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .bot-face {
+      font-size: 30px;
+      filter: drop-shadow(0 0 6px rgba(148,163,184,0.6));
+    }
+
+    .bot-talk {
+      max-width: 300px;
+      font-style: italic;
+      opacity: 0.9;
+    }
+
+    /* Emoji explosion */
+    .explosion-emoji {
+      position: fixed;
+      font-size: 28px;
+      pointer-events: none;
+      animation: explode 700ms ease-out forwards;
+      z-index: 9;
+    }
+
+    @keyframes explode {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0.6); opacity: 0; }
+    }
+
+    /* Floating score popup */
+    .score-popup {
+      position: absolute;
+      font-size: 18px;
+      font-weight: 700;
+      animation: scorePop 0.9s ease-out forwards;
+      pointer-events: none;
+      z-index: 15;
+    }
+    @keyframes scorePop {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-30px); opacity: 0; }
+    }
+
+    /* R/P/S special win animations */
+    .anim-rock-smash {
+      animation: rockSmash 0.45s ease-out;
+    }
+    @keyframes rockSmash {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.15) translateY(-4px); }
+      100% { transform: scale(1); }
+    }
+
+    .anim-paper-wrap {
+      animation: paperWrap 0.45s ease-out;
+    }
+    @keyframes paperWrap {
+      0% { letter-spacing: 0; }
+      40% { letter-spacing: 0.25em; }
+      100% { letter-spacing: 0.05em; }
+    }
+
+    .anim-scissors-slice {
+      animation: scissorsSlice 0.45s ease-out;
+    }
+    @keyframes scissorsSlice {
+      0% { transform: skewX(0deg); }
+      30% { transform: skewX(-12deg); }
+      100% { transform: skewX(0deg); }
+    }
+
+    /* Mouse spark trails */
+    .trail-dot {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-neon);
+      box-shadow: 0 0 10px var(--accent-neon);
+      pointer-events: none;
+      animation: trailFade 0.4s ease-out forwards;
+      z-index: 3;
+    }
+    @keyframes trailFade {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.3); opacity: 0; }
+    }
+
+    /* =============================
+       LOADING SCREEN
+       ============================= */
+    #loadingScreen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      color: white;
+      transition: opacity 0.6s ease;
+    }
+
+    #loadingScreen.fadeOut {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-container {
+      text-align: center;
+    }
+
+    .pubg-loader {
+      width: 60px;
+      height: 60px;
+      border: 6px solid #333;
+      border-top-color: #facc15;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin-top: 16px;
+      font-size: 18px;
+      opacity: 0.85;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .loading-bar {
+      width: 260px;
+      height: 8px;
+      background: #333;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 14px auto;
+    }
+
+    .loading-progress {
+      width: 0%;
+      height: 100%;
+      background: #facc15;
+      animation: progressAnim 2.3s ease forwards;
+    }
+
+    /* ============================
+   ULTIMATE CINEMATIC FOOTER
+============================ */
+#gameFooter {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 12px;
+  text-align: center;
+  background: rgba(15,23,42,0.7);
+  border-top: 1px solid rgba(250,204,21,0.4);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  animation: footerFadeIn 1.2s ease;
+  color: var(--text-main);
+  font-size: 16px;
+}
+
+@keyframes footerFadeIn {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.footer-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent-gold);
+  text-shadow: 0 0 10px rgba(250,204,21,0.7),
+               0 0 20px rgba(0,0,0,0.9);
+  margin-bottom: 4px;
+}
+
+.footer-rows {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 12px;
+  flex-wrap: wrap;
+}
+
+.footer-left,
+.footer-center,
+.footer-right {
+  flex: 1;
+}
+
+.hud-text {
+  font-family: monospace;
+  font-size: 14px;
+  text-align: left;
+  opacity: 0.85;
+}
+
+.footer-center {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.tiny {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.neon-links a {
+  color: var(--accent-blue);
+  text-shadow: 0 0 8px var(--accent-blue);
+  text-decoration: none;
+  font-size: 14px;
+  margin: 0 4px;
+  transition: 0.2s ease;
+}
+
+.neon-links a:hover {
+  color: var(--accent-gold);
+  text-shadow: 0 0 10px var(--accent-gold);
+}
+
+.footer-right {
+  text-align: right;
+}
+
+/* Responsive footer */
+@media (max-width: 700px) {
+  .footer-rows {
+    flex-direction: column;
+    text-align: center;
+    gap: 6px;
+  }
+  .footer-right,
+  .footer-left {
+    text-align: center;
+  }
+}
+
+
+    @keyframes progressAnim {
+      0%   { width: 0%; }
+      50%  { width: 40%; }
+      80%  { width: 75%; }
+      100% { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- CINEMATIC INTRO -->
+<div id="cinematicIntro">
+  <div class="cinematic-fade"></div>
+  <div class="light-rays"></div>
+  <div class="smoke"></div>
+
+  <div class="drone"></div>
+  <div class="drone-spotlight"></div>
+
+  <div class="shutter shutter-left"></div>
+  <div class="shutter shutter-right"></div>
+
+  <div id="sparkLayer"></div>
+
+  <div id="cinematicCountdown">5</div>
+  <div id="cinematicMsg"></div>
+
+  <div class="fighter">
+    <div class="fighter-head"></div>
+    <div class="fighter-body"></div>
+    <div class="fighter-arm left"></div>
+    <div class="fighter-arm right"></div>
+  </div>
+
+  <button id="enterArenaBtn">ENTER BATTLE ARENA</button>
+</div>
+
+<div id="gameWrapper">
+  <!-- Flash layer -->
+  <div id="flash"></div>
+
+  <!-- Main game UI -->
+  <div class="game-title">Rock • Paper • Scissors</div>
+
+  <div class="top-bar">
+    Mode:
+    <select id="modeSelect">
+      <option value="classic">Classic</option>
+      <option value="bo3">Best of 3</option>
+      <option value="sudden">Sudden Death</option>
+      <option value="speed">Speed Mode</option>
+      <option value="boss">Boss Mode</option>
+    </select>
+
+    Bot:
+    <select id="botSelect">
+      <option value="random">Random</option>
+      <option value="aggressive">Aggressive</option>
+      <option value="coward">Coward</option>
+      <option value="trash">Trash Talker</option>
+    </select>
+
+    <button class="mini-btn" id="soundToggle">Sound: ON</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" data-choice="rock">🪨 Rock</button>
+    <button class="btn" data-choice="paper">📄 Paper</button>
+    <button class="btn" data-choice="scissors">✂️ Scissors</button>
+  </div>
+
+  <div id="countdown"></div>
+  <div id="resultBox"></div>
+
+  <div class="scoreboard">
+    <div class="score-row"><span class="score-label">👤 Player</span><span id="playerScore">0</span></div>
+    <div class="score-row"><span class="score-label">🤖 Bot</span><span id="botScore">0</span></div>
+    <div class="score-row"><span class="score-label">🤝 Draws</span><span id="drawScore">0</span></div>
+    <div class="series-info" id="seriesInfo">Mode: Classic – endless battle.</div>
+  </div>
+
+  <div class="bot-panel">
+    <div class="bot-face" id="botFace">😐</div>
+    <div class="bot-talk" id="botTalk">Bot is warming up...</div>
+  </div>
+</div>
+
+<!-- Loading screen -->
+<div id="loadingScreen">
+  <div class="loader-container">
+    <div class="pubg-loader"></div>
+    <div class="loading-text">Loading Resources...</div>
+    <div class="loading-bar">
+      <div class="loading-progress"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+      ULTIMATE BATTLE FOOTER
+============================ -->
+<footer id="gameFooter">
+    <div class="footer-title">⚔ ROCK • PAPER • SCISSORS — BATTLE ROYALE ⚔</div>
+
+    <div class="footer-rows">
+        <div class="footer-left hud-text">
+            [ Version 1.0.0 ]  
+            [ Online API: <span id="apiStatus">Checking...</span> ]
+        </div>
+
+        <div class="footer-center">
+            © 2025 Ahmed — Built for Web, Mobile & itch.io  
+            <br>
+            <span class="tiny">All trademarks belong to their respective owners.</span>
+        </div>
+    </div>
+</footer>
+
+
+<script>
+  let playerScore = 0;
+  let botScore = 0;
+  let drawScore = 0;
+  let isPlaying = false;
+  let audioCtx = null;
+  let soundEnabled = true;
+
+  let currentMode = "classic";
+  let currentBotStyle = "random";
+  let roundCount = 0;
+  let playerSeriesWins = 0;
+  let botSeriesWins = 0;
+
+  const wrapper       = document.getElementById('gameWrapper');
+  const flash         = document.getElementById('flash');
+  const countdownEl   = document.getElementById('countdown');
+  const resultBox     = document.getElementById('resultBox');
+  const btns          = document.querySelectorAll('.btn');
+  const modeSelect    = document.getElementById('modeSelect');
+  const botSelect     = document.getElementById('botSelect');
+  const seriesInfoEl  = document.getElementById('seriesInfo');
+  const botFaceEl     = document.getElementById('botFace');
+  const botTalkEl     = document.getElementById('botTalk');
+  const soundToggle   = document.getElementById('soundToggle');
+
+  // Cinematic intro elements
+  const cinematicIntro     = document.getElementById('cinematicIntro');
+  const cinematicCountdown = document.getElementById('cinematicCountdown');
+  const cinematicMsg       = document.getElementById('cinematicMsg');
+  const enterArenaBtn      = document.getElementById('enterArenaBtn');
+  const sparkLayer         = document.getElementById('sparkLayer');
+
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  }
+
+  function playTone(freq = 600, duration = 120, gainVal = 0.25) {
+    if (!soundEnabled) return;
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    gain.gain.value = gainVal;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    setTimeout(() => osc.stop(), duration);
+  }
+
+  function playClick() { playTone(900, 80, 0.22); }
+  function playStep(i){ playTone(400 + i*80,100,0.2); }
+  function playWin()  { playTone(1100,160,0.28); setTimeout(()=>playTone(1400,140,0.25),160); }
+  function playLose() { playTone(350,220,0.25); }
+  function playDraw() { playTone(700,150,0.22); }
+
+  soundToggle.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    soundToggle.textContent = "Sound: " + (soundEnabled ? "ON" : "OFF");
+    playClick();
+  });
+
+  function updateScoreUI() {
+    document.getElementById('playerScore').innerText = playerScore;
+    document.getElementById('botScore').innerText    = botScore;
+    document.getElementById('drawScore').innerText   = drawScore;
+  }
+
+  function saveScores() {
+    localStorage.setItem('rps_scores', JSON.stringify({
+      player: playerScore,
+      bot: botScore,
+      draw: drawScore
+    }));
+  }
+
+  function loadScores() {
+    const saved = JSON.parse(localStorage.getItem('rps_scores') || '{}');
+    playerScore = saved.player || 0;
+    botScore    = saved.bot    || 0;
+    drawScore   = saved.draw   || 0;
+    updateScoreUI();
+  }
+
+  function delay(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+
+  /* ===========================
+     Cinematic Intro Logic
+     =========================== */
+  function spawnSparks() {
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("div");
+      s.className = "spark";
+      s.style.left = (50 + (Math.random()*40 - 20)) + "vw";
+      s.style.top  = (40 + (Math.random()*20 - 10)) + "vh";
+      sparkLayer.appendChild(s);
+      setTimeout(() => s.remove(), 900);
+    }
+  }
+
+  async function startCinematicIntro() {
+    const seq = [5,4,3,2,1,"ENGAGE!"];
+    for (let i = 0; i < seq.length; i++) {
+      cinematicCountdown.style.opacity = 1;
+      cinematicCountdown.innerText = seq[i];
+      wrapper.classList.add('shake');
+      spawnSparks();
+      playStep(i);
+      await delay(850);
+      wrapper.classList.remove('shake');
+    }
+    cinematicMsg.innerText = "ROCK • PAPER • SCISSORS BATTLE ROYALE";
+    cinematicMsg.style.opacity = 1;
+    enterArenaBtn.classList.add('show');
+  }
+
+  enterArenaBtn.addEventListener("click", () => {
+    playClick();
+    flash.classList.add('flash-active');
+    wrapper.classList.add('shake');
+    cinematicIntro.style.transition = "opacity 0.6s ease";
+    cinematicIntro.style.opacity = "0";
+    setTimeout(() => {
+      flash.classList.remove('flash-active');
+      wrapper.classList.remove('shake');
+      cinematicIntro.remove();
+    }, 600);
+  });
+
+  /* ===========================
+     Game logic + modes
+     =========================== */
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const choice = btn.getAttribute('data-choice');
+      playRound(choice);
+    });
+  });
+
+  function disableButtons(state) {
+    btns.forEach(b => b.disabled = state);
+  }
+
+  function getEmoji(choice) {
+    if (choice === 'rock')     return '🪨';
+    if (choice === 'paper')    return '📄';
+    if (choice === 'scissors') return '✂️';
+    return '❓';
+  }
+
+  modeSelect.addEventListener("change", () => {
+    currentMode = modeSelect.value;
+    roundCount = 0;
+    playerSeriesWins = 0;
+    botSeriesWins = 0;
+    updateSeriesText();
+    playClick();
+  });
+
+  botSelect.addEventListener("change", () => {
+    currentBotStyle = botSelect.value;
+    playClick();
+    botTalkEl.textContent = "Bot mode: " + currentBotStyle.toUpperCase();
+  });
+
+  function updateSeriesText() {
+    if (currentMode === "classic") {
+      seriesInfoEl.textContent = "Mode: Classic – endless battle.";
+    } else if (currentMode === "bo3") {
+      seriesInfoEl.textContent = `Mode: Best of 3 – Player ${playerSeriesWins} : Bot ${botSeriesWins}`;
+    } else if (currentMode === "sudden") {
+      seriesInfoEl.textContent = "Mode: Sudden Death – First win ends the round.";
+    } else if (currentMode === "speed") {
+      seriesInfoEl.textContent = "Mode: Speed – Faster countdown, react quickly!";
+    } else if (currentMode === "boss") {
+      seriesInfoEl.textContent = "Mode: Boss – Bot may CHEAT sometimes 👀";
+    }
+  }
+
+  function setBotFaceAndTalk(winner, data) {
+    let face = "😐";
+    let line = "";
+
+    const winLines = [
+      "Easy win, human.",
+      "You call that a move?",
+      "Outplayed. Again.",
+      "Stay in the lobby next time."
+    ];
+    const loseLines = [
+      "No way... you actually won?",
+      "Lag... I blame lag.",
+      "Okay that was luck.",
+      "Don't get used to this."
+    ];
+    const drawLines = [
+      "Hmm... interesting.",
+      "Copycat move.",
+      "We think alike, human.",
+      "Draw... warm-up only."
+    ];
+
+    if (winner === "player") {
+      face = "😡";
+      line = loseLines[Math.floor(Math.random()*loseLines.length)];
+    } else if (winner === "bot") {
+      face = "😏";
+      line = winLines[Math.floor(Math.random()*winLines.length)];
+    } else {
+      face = "😐";
+      line = drawLines[Math.floor(Math.random()*drawLines.length)];
+    }
+
+    if (currentBotStyle === "coward") {
+      face = "😰";
+      if (winner === "player") line = "I... meant to do that.";
+      else if (winner === "bot") line = "Finally... a win... I was nervous.";
+      else line = "Can we not fight?";
+    }
+
+    if (currentBotStyle === "aggressive") {
+      face = winner === "bot" ? "😈" : "😤";
+    }
+
+    if (currentBotStyle === "trash") {
+      // already kind of trash talk; keep as is
+    } else if (currentBotStyle === "random") {
+      // neutral tone
+      if (winner === "player") line = "Nice move. Let's see next round.";
+      else if (winner === "bot") line = "I was just getting warmed up.";
+      else line = "Balanced... for now.";
+    }
+
+    botFaceEl.textContent = face;
+    botTalkEl.textContent = line;
+  }
+
+  function scorePopup(text, color) {
+    const popup = document.createElement("div");
+    popup.className = "score-popup";
+    popup.textContent = text;
+    popup.style.color = color;
+    const rect = document.querySelector(".scoreboard").getBoundingClientRect();
+    popup.style.left = (rect.left + rect.width/2) + "px";
+    popup.style.top  = (rect.top) + "px";
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 900);
+  }
+
+  function applyWinAnimation(data, winnerClass) {
+    const winnerChoice = winnerClass === "winner-player" ? data.player :
+                         winnerClass === "winner-bot"    ? data.bot    : null;
+    if (!winnerChoice) return;
+
+    if (winnerChoice === "rock") {
+      resultBox.classList.add("anim-rock-smash");
+      setTimeout(()=>resultBox.classList.remove("anim-rock-smash"), 450);
+    } else if (winnerChoice === "paper") {
+      resultBox.classList.add("anim-paper-wrap");
+      setTimeout(()=>resultBox.classList.remove("anim-paper-wrap"), 450);
+    } else if (winnerChoice === "scissors") {
+      resultBox.classList.add("anim-scissors-slice");
+      setTimeout(()=>resultBox.classList.remove("anim-scissors-slice"), 450);
+    }
+  }
+
+  async function playRound(choice) {
+    if (isPlaying) return;
+    isPlaying = true;
+    playClick();
+    disableButtons(true);
+    resultBox.classList.remove('show');
+    resultBox.innerHTML = '';
+    wrapper.classList.remove('shake');
+
+    const steps = currentMode === "speed"
+      ? ['Rock…','Paper…','Scissors…','SHOOT!']
+      : ['Rock…','Paper…','Scissors…','SHOOT!'];
+
+    const stepDelay = currentMode === "speed" ? 260 : 450;
+
+    for (let i = 0; i < steps.length; i++) {
+      countdownEl.innerText = steps[i];
+      playStep(i);
+      await delay(stepDelay);
+    }
+    countdownEl.innerText = '';
+
+    try {
+      const res = await fetch(`http://localhost:5246/play/${choice}`);
+      let data = await res.json();
+
+      // Boss mode: bot cheats 30% chance if it didn't already win
+      if (currentMode === "boss") {
+        if (data.winner !== "bot" && Math.random() < 0.3) {
+          data.winner = "bot";
+          data.bot = data.bot; // no change in choice, just outcome
+        }
+      }
+
+      const emojiPlayer = getEmoji(data.player);
+      const emojiBot    = getEmoji(data.bot);
+
+      let winnerClass = '';
+      if (data.winner === 'player')      winnerClass = 'winner-player';
+      else if (data.winner === 'bot')    winnerClass = 'winner-bot';
+      else                               winnerClass = 'winner-draw';
+
+      resultBox.innerHTML = `
+        <div class="${winnerClass}">
+          ${emojiPlayer} VS ${emojiBot}<br>
+          ${data.winner.toUpperCase()}
+        </div>
+      `;
+      resultBox.classList.add('show');
+
+      wrapper.classList.add('shake');
+      spawnExplosion(data.winner);
+      applyWinAnimation(data, winnerClass);
+      setBotFaceAndTalk(data.winner, data);
+
+      if (data.winner === 'player') {
+        playerScore++;
+        playWin();
+        scorePopup("+1 Player", "#22c55e");
+      } else if (data.winner === 'bot') {
+        botScore++;
+        playLose();
+        scorePopup("+1 Bot", "#ef4444");
+      } else {
+        drawScore++;
+        playDraw();
+        scorePopup("Draw", "#facc15");
+      }
+      updateScoreUI();
+      saveScores();
+
+      handleModesAfterRound(data.winner);
+    } catch (err) {
+      console.error(err);
+      resultBox.innerHTML = `<span class="winner-bot">Error talking to server</span>`;
+      resultBox.classList.add('show');
+    }
+
+    setTimeout(() => wrapper.classList.remove('shake'), 400);
+    disableButtons(false);
+    isPlaying = false;
+  }
+
+  function handleModesAfterRound(winner) {
+    roundCount++;
+
+    if (currentMode === "bo3") {
+      if (winner === "player") playerSeriesWins++;
+      if (winner === "bot")    botSeriesWins++;
+
+      if (playerSeriesWins === 2 || botSeriesWins === 2) {
+        const seriesWinner = playerSeriesWins === 2 ? "PLAYER" : "BOT";
+        seriesInfoEl.textContent = `Best of 3 finished – ${seriesWinner} wins the series!`;
+        playerSeriesWins = 0;
+        botSeriesWins = 0;
+        roundCount = 0;
+      } else {
+        seriesInfoEl.textContent = `Mode: Best of 3 – Player ${playerSeriesWins} : Bot ${botSeriesWins}`;
+      }
+    }
+
+    if (currentMode === "sudden") {
+      if (winner === "player" || winner === "bot") {
+        seriesInfoEl.textContent = `Sudden Death Result – ${winner.toUpperCase()} wins! Next click starts a new death round.`;
+        roundCount = 0;
+      }
+    }
+
+    if (currentMode === "speed") {
+      // just cosmetic
+      seriesInfoEl.textContent = "Mode: Speed – keep up!";
+    }
+
+    if (currentMode === "boss") {
+      seriesInfoEl.textContent = "Mode: Boss – the bot enjoys winning...";
+    }
+  }
+
+  function spawnExplosion(type) {
+    const emojis =
+      type === 'player' ? ['🪨','📄','✂️','💥'] :
+      type === 'bot'    ? ['🤖','💥','🪨','✂️'] :
+                          ['🤝','🪨','📄','✂️'];
+
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2 + 40;
+
+    for (let i = 0; i < 10; i++) {
+      const span = document.createElement('span');
+      span.className = 'explosion-emoji';
+      span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+      const dx = (Math.random() * 200 - 100) + 'px';
+      const dy = (Math.random() * -200 - 40) + 'px';
+      span.style.left = centerX + 'px';
+      span.style.top  = centerY + 'px';
+      span.style.setProperty('--dx', dx);
+      span.style.setProperty('--dy', dy);
+
+      document.body.appendChild(span);
+      setTimeout(() => span.remove(), 700);
+    }
+  }
+
+  // Mouse trail
+  document.addEventListener("mousemove", (e) => {
+    const dot = document.createElement("div");
+    dot.className = "trail-dot";
+    dot.style.left = e.clientX + "px";
+    dot.style.top  = e.clientY + "px";
+    document.body.appendChild(dot);
+    setTimeout(() => dot.remove(), 400);
+  });
+
+  // Loading screen -> cinematic
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      document.getElementById("loadingScreen").classList.add("fadeOut");
+      startCinematicIntro();
+    }, 2400);
+  });
+
+  // ================================
+// FOOTER — API STATUS INDICATOR
+// ================================
+async function checkApiStatus() {
+    const api = document.getElementById("apiStatus");
+
+    try {
+        const res = await fetch("http://localhost:5246/play/rock", { method: "GET" });
+        if (res.ok) {
+            api.innerText = "ONLINE";
+            api.style.color = "#22c55e";
+            api.style.textShadow = "0 0 10px #22c55e";
+        } else {
+            throw new Error();
+        }
+    } catch {
+        api.innerText = "OFFLINE";
+        api.style.color = "#ef4444";
+        api.style.textShadow = "0 0 10px #ef4444";
+    }
+}
+
+setTimeout(checkApiStatus, 1500);
+
+
+  // init
+  loadScores();
+  updateSeriesText();
+</script>
+</body>
+</html>
