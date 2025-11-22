@@ -1146,7 +1146,7 @@
     countdownEl.innerText = '';
 
     try {
-      const res = await fetch(`http://localhost:5246/play/${choice}`);
+      const res = await fetch(`https://rps-3-jsfo.onrender.com/play/${choice}`);
       let data = await res.json();
 
       // Boss mode: bot cheats 30% chance if it didn't already win

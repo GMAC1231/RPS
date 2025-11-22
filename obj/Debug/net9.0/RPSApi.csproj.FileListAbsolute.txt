@@ -26,3 +26,4 @@ C:\Users\benty\RPSApi\obj\Debug\net9.0\refint\RPSApi.dll
 C:\Users\benty\RPSApi\obj\Debug\net9.0\RPSApi.pdb
 C:\Users\benty\RPSApi\obj\Debug\net9.0\RPSApi.genruntimeconfig.cache
 C:\Users\benty\RPSApi\obj\Debug\net9.0\ref\RPSApi.dll
+C:\Users\benty\RPSApi\obj\Debug\net9.0\RPSApi.sourcelink.json

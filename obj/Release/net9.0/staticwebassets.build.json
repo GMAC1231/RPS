@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "EZTxH4OG0z2HyOf/0CCLg6uSqYa3LFRZueD1uAw9stQ=",
+  "Source": "RPSApi",
+  "BasePath": "_content/RPSApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
